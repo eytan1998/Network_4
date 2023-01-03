@@ -1,33 +1,31 @@
 #include <stdio.h>
-#include <sys/time.h> // gettimeofday()
-#include <stdio.h>
-#include <netdb.h>
+#include <sys/time.h>
 #include <netinet/in.h>
 #include <stdlib.h>
 #include <string.h>
 #include <sys/socket.h>
-#include <sys/types.h>
-#include <unistd.h> // read(), write(), close()
+#include <unistd.h>
+#include <arpa/inet.h>
 
 #define PORT 3000
-
-#include <signal.h>
-#include <stdlib.h>
+#define BUFFER_SIZE 64
 
 
 int main() {
+    //===================
+    // create tcp connection
+    //===================
     int sockfd;
-    struct sockaddr_in servaddr, cli;
+    struct sockaddr_in servaddr;
 
     // socket create and verification
     sockfd = socket(AF_INET, SOCK_STREAM, 0);
     if (sockfd == -1) {
-        printf("socket creation failed...\n");
+        printf("[-] watchdog: tcp socket creation failed.\n");
         exit(0);
-    } else
-        printf("Socket successfully created..\n");
-    bzero(&servaddr, sizeof(servaddr));
+    }
 
+    bzero(&servaddr, sizeof(servaddr));
     // assign IP, PORT
     servaddr.sin_family = AF_INET;
     servaddr.sin_addr.s_addr = inet_addr("127.0.0.1");
@@ -36,37 +34,47 @@ int main() {
     // connect the client socket to server socket
     if (connect(sockfd, (struct sockaddr *) &servaddr, sizeof(servaddr))
         != 0) {
-        printf("connection with the server failed...\n");
+        printf("[-] watchdog: tcp connection with the server failed.\n");
         exit(0);
-    } else
-        printf("connected to the server..\n");
+    }
 
+    //the timer
+    //end - update every iteration, start - update every pet
     struct timeval start, end;
     gettimeofday(&start, 0);
     gettimeofday(&end, 0);
 
+    char msg[BUFFER_SIZE] = {0};
 
-    char msg[4] = {0};
-    int status;
+    //loop until the timer pass 10 seconds
+    while (1) {
+        gettimeofday(&end, 0);
 
-    while (10 - (end.tv_sec - start.tv_sec) > 0) {
-        int e = recv(sockfd, msg, 4, 0);
+        bzero(msg, BUFFER_SIZE);
+        //recv from ping: add - to keep the recv form blocking, pet - to reset the timer
+        ssize_t e = recv(sockfd, msg, BUFFER_SIZE, 0);
         if (e == 0) break;
         if (e < 0) return -1;
-        if (strcmp(msg, "pet") == 0) {
+        //the use of strstr because the  buffer is bigger and accept more than one command
+        //get more than one command to prevent queue
+        if (strstr(msg, "pet") != NULL) {
             gettimeofday(&start, 0);
         }
-        gettimeofday(&end, 0);
-    //    printf("msg = %s,time for time out: %ld\n", msg, 10 - (end.tv_sec - start.tv_sec));
 
-        strcpy(msg,"add\0");
-        send(sockfd, msg, 4, 0);
-        bzero(msg, 4);
+        time_t timeRemain = (10 - (end.tv_sec - start.tv_sec));
+        printf("Massage from ping: %s, sec remaining %ld\n", msg, timeRemain);
+        if (timeRemain <= 0) {
+            //sending for ping to end "bark"
+            send(sockfd, "bark", 4, 0);
+            break;
+        } else {
+            //to prevent the ping recv blocking
+            send(sockfd, "add", 3, 0);
+        }
+
+        sleep(1);
     }
-    printf("Sending end msg\n");
-    bzero(msg, 4);
-    strcpy(msg,"end\0");
-    send(sockfd, msg, 4, 0);
+
     close(sockfd);
     return 0;
 }
