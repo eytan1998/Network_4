@@ -1,9 +1,8 @@
+
+#include <netinet/in.h>
 #include <stdio.h>
 #include <sys/time.h>
-#include <netinet/in.h>
-#include <stdlib.h>
 #include <string.h>
-#include <sys/socket.h>
 #include <unistd.h>
 #include <arpa/inet.h>
 
@@ -22,7 +21,7 @@ int main() {
     sockfd = socket(AF_INET, SOCK_STREAM, 0);
     if (sockfd == -1) {
         printf("[-] watchdog: tcp socket creation failed.\n");
-        exit(0);
+        return -1;
     }
 
     bzero(&servaddr, sizeof(servaddr));
@@ -35,7 +34,7 @@ int main() {
     if (connect(sockfd, (struct sockaddr *) &servaddr, sizeof(servaddr))
         != 0) {
         printf("[-] watchdog: tcp connection with the server failed.\n");
-        exit(0);
+        return -1;
     }
 
     //the timer

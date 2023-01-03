@@ -1,16 +1,14 @@
 
-#include <arpa/inet.h>
-#include <errno.h>
 #include <netinet/in.h>
-#include <netinet/ip.h>
-#include <netinet/ip_icmp.h>
 #include <stdio.h>
-#include <string.h>
-#include <sys/socket.h>
-#include <sys/time.h>
+#include <strings.h>
+#include <arpa/inet.h>
 #include <unistd.h>
+#include <string.h>
+#include <netinet/ip_icmp.h>
+#include <sys/time.h>
+#include <errno.h>
 #include <signal.h>
-
 
 #define ICMP_HDR_LEN 8
 #define BUFFER_SIZE  64
