@@ -70,9 +70,6 @@ int execute_and_connectTo_watch_dog() {
 int chat_with_watchdog(int sock_watchdog, char *dest_ip) {
     char msg[BUFFER_SIZE];
     while (1) {
-        //to prevent the watchdog recv blocking
-        send(sock_watchdog, "add", 3, 0);
-
         //recv from ping: add - to keep the recv form blocking, bark - close program
         bzero(msg, BUFFER_SIZE);
         recv(sock_watchdog, msg, BUFFER_SIZE, 0);
@@ -85,6 +82,10 @@ int chat_with_watchdog(int sock_watchdog, char *dest_ip) {
             printf("[-] Server %s cannot be reached.\n", dest_ip);
             return -1;
         }
+        //to prevent the watchdog recv blocking
+        send(sock_watchdog, "add", 3, 0);
+
+
         sleep(1);
     }
 
@@ -259,7 +260,6 @@ int main(int argc, char *argv[]) {
     }
     // Close the raw socket descriptor.
     // end program
-    close(sock_watchdog);
     close(sock);
     kill(pid, SIGTERM);
     return 0;
