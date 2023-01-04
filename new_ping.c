@@ -76,7 +76,7 @@ int chat_with_watchdog(int sock_watchdog, char *dest_ip) {
         //the use of strstr because the  buffer is bigger and accept more than one command
         //get more than one command to prevent queue
 
-        printf("Massage from watchdog: %s\n", msg);
+//        printf("Massage from watchdog: %s\n", msg);
 
         if (strstr(msg, "bark") != NULL) {
             printf("[-] Server %s cannot be reached.\n", dest_ip);
@@ -84,7 +84,6 @@ int chat_with_watchdog(int sock_watchdog, char *dest_ip) {
         }
         //to prevent the watchdog recv blocking
         send(sock_watchdog, "add", 3, 0);
-
 
         sleep(1);
     }

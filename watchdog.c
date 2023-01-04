@@ -61,7 +61,7 @@ int main() {
         }
 
         time_t timeRemain = (10 - (end.tv_sec - start.tv_sec));
-        printf("Massage from ping: %s, sec remaining %ld\n", msg, timeRemain);
+//        printf("Massage from ping: %s, sec remaining %ld\n", msg, timeRemain);
         if (timeRemain <= 0) {
             //sending for ping to end "bark"
             send(sockfd, "bark", 4, 0);
